@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Meowl Update Script Steal A Brainrot</title>
+<style>
+  :root{
+    --bg:#0b0b0b;
+    --accent:#ff2d2d;
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:Inter,"Segoe UI",system-ui,-apple-system,Arial;background:#000;color:#eee;display:flex;align-items:center;justify-content:center;overflow:hidden}
+
+  /* ===== Fondo video ===== */
+  #bg-video{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+
+  /* ===== Top actions ===== */
+  .top-actions{position:fixed;top:16px;right:16px;display:flex;gap:10px;z-index:10}
+  .btn{appearance:none;border:0;cursor:pointer;padding:10px 16px;border-radius:12px;font-weight:700;display:inline-flex;align-items:center;gap:8px;transition:transform .12s ease,box-shadow .12s ease}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:linear-gradient(90deg,var(--accent),#7a0000);color:#fff;box-shadow:0 0 15px rgba(255,45,45,.35)}
+  .btn-dark{background:linear-gradient(90deg,#2a2a2a,#101010);color:#ff9a9a;border:1px solid rgba(255,45,45,.2)}
+
+  /* ===== Sidebars ===== */
+  .sidebar{position:fixed;top:0;height:100%;width:320px;background:rgba(10,10,10,.95);color:#fff;padding:24px;border-left:2px solid var(--accent);box-shadow:-6px 0 24px rgba(255,0,0,.35);transition:transform .35s ease;z-index:9;display:flex;flex-direction:column;gap:12px}
+  .sidebar h2{margin:0 0 6px;color:var(--accent);text-align:center}
+  .sidebar input{width:100%;padding:10px;border-radius:10px;border:0;background:#181818;color:#fff}
+  .sidebar.right{right:0;transform:translateX(100%)}
+  .sidebar.left{left:0;border-left:0;border-right:2px solid var(--accent);box-shadow:6px 0 24px rgba(255,0,0,.35);transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar .close{position:absolute;top:10px;right:12px;background:transparent;border:0;color:#fff;font-size:20px;cursor:pointer}
+
+  /* ===== Modals ===== */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:8;opacity:0;pointer-events:none;transition:opacity .2s ease}
+  .overlay.open{opacity:1;pointer-events:auto}
+  .modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-55%) scale(.98);background:rgba(20,20,20,.96);border:2px solid var(--accent);border-radius:14px;padding:26px 22px;z-index:11;width:min(92vw,360px);box-shadow:0 0 30px rgba(255,0,0,.35);display:none}
+  .modal.open{display:block;transform:translate(-50%,-50%) scale(1)}
+  .modal h3{margin:0 0 10px}
+  .modal input{width:100%;padding:10px;border-radius:10px;border:0;background:#161616;color:#fff;margin:.35rem 0}
+  .modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+
+  /* ===== Panel principal ===== */
+  .card-wrapper{position:relative;width:90%;max-width:860px;padding:20px;border-radius:24px;overflow:hidden;z-index:2}
+  .card-wrapper::before{content:"";position:absolute;inset:0;border-radius:24px;padding:2px;background:conic-gradient(from 0deg,#ff0000,#000,#ff0000);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;background-size:200% 200%;animation:moveBorder 8s linear infinite;z-index:1}
+  @keyframes moveBorder{0%{background-position:0% 0%}100%{background-position:200% 0%}}
+  .card{position:relative;z-index:2;border-radius:18px;background:linear-gradient(180deg,rgba(20,20,20,.45),rgba(6,6,6,.6));backdrop-filter:blur(8px);padding:clamp(22px,4vw,42px);display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center}
+  .card h1{margin:0;font-size:clamp(18px,4vw,28px)}
+  .key-row{display:none;gap:10px;flex-wrap:wrap;justify-content:center}
+  .key{flex:1 1 260px;max-width:600px;padding:12px 14px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(0,0,0,.18));border:1px solid rgba(255,45,45,.08);font-weight:700;letter-spacing:2px;color:#ffd6d6;user-select:none}
+
+  /* ===== Dashboard (Owner) ===== */
+  .dashboard{display:none;position:relative;z-index:2;width:min(960px,94vw)}
+  .dash-inner{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+  .metric{background:rgba(15,15,15,.9);border:1px solid rgba(255,45,45,.2);border-radius:16px;padding:18px;text-align:center}
+  .metric h4{margin:0 0 6px;color:#ffb3b3}
+  .metric .num{font-size:clamp(22px,6vw,38px);font-weight:900}
+  .dash-actions{margin-top:14px;display:flex;justify-content:flex-end}
+</style>
+</head>
+<body>
+  <!-- Fondo -->
+  <video id="bg-video" autoplay muted loop playsinline>
+    <source src="https://github.com/ZamasXmodder/DragonHalloween/raw/main/Drag%C3%B3n_de_Halloween_con_Fuego_Animado.mp4" type="video/mp4">
+  </video>
+
+  <!-- Botones superiores -->
+  <div class="top-actions">
+    <button class="btn btn-dark" id="adminBtn">Admin Users</button>
+    <button class="btn btn-primary" id="premiumBtn">Premium</button>
+  </div>
+
+  <!-- Sidebars -->
+  <aside class="sidebar left" id="adminPanel">
+    <button class="close" data-close="adminPanel">✕</button>
+    <h2>Admin Panel</h2>
+    <div class="admin-buttons" style="width:100%">
+      <button class="btn btn-primary" id="adminUserBtn" style="width:100%">Admin User</button>
+      <button class="btn btn-dark" id="ownerUserBtn" style="width:100%">OWNER USER</button>
+    </div>
+  </aside>
+
+  <aside class="sidebar right" id="premiumSidebar">
+    <button class="close" data-close="premiumSidebar">✕</button>
+    <h2>Only Premium Users</h2>
+    <input type="text" placeholder="Usuario" id="premiumUser">
+    <input type="password" placeholder="Contraseña" id="premiumPass">
+    <button class="btn btn-primary" id="premiumLogin">Entrar</button>
+  </aside>
+
+  <!-- Overlay general para sidebars y modales -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- Modales de login -->
+  <div class="modal" id="adminLogin">
+    <h3>Admin Login</h3>
+    <input type="text" placeholder="Usuario">
+    <input type="password" placeholder="Contraseña">
+    <div class="actions">
+      <button class="btn btn-dark" data-close-modal="adminLogin">Cancelar</button>
+      <button class="btn btn-primary">Entrar</button>
+    </div>
+  </div>
+
+  <div class="modal" id="ownerLogin">
+    <h3>Owner Login</h3>
+    <input type="text" id="ownerUser" placeholder="Usuario">
+    <input type="password" id="ownerPass" placeholder="Contraseña">
+    <div class="actions">
+      <button class="btn btn-dark" data-close-modal="ownerLogin">Cancelar</button>
+      <button class="btn btn-primary" id="ownerSubmit">Entrar</button>
+    </div>
+  </div>
+
+  <!-- Dashboard Owner -->
+  <section class="dashboard" id="dashboard">
+    <div class="card-wrapper" style="margin:0 auto">
+      <div class="card">
+        <h1>📊 Dashboard — Owner</h1>
+        <div class="dash-inner">
+          <div class="metric">
+            <h4>Vistas totales</h4>
+            <div class="num" id="viewsCount">0</div>
+          </div>
+          <div class="metric">
+            <h4>Clics totales</h4>
+            <div class="num" id="clickCount">0</div>
+          </div>
+        </div>
+        <div class="dash-actions">
+          <button class="btn btn-dark" id="backToMain">Volver</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Panel principal -->
+  <div class="card-wrapper" id="mainPanel">
+    <div class="card">
+      <h1>Meowl Update Script — Steal A Brainrot</h1>
+      <button id="getKeyBtn" class="btn btn-primary">Get Trial Key</button>
+      <div class="key-row" id="keyRow">
+        <div class="key" id="keyDisplay">— — — — —</div>
+        <button id="copyBtn" class="btn btn-dark">Copy Key</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(()=>{
+  let views = Number(localStorage.getItem('views')||0)+1;
+  localStorage.setItem('views', views);
+  let clicks = Number(localStorage.getItem('clicks')||0);
+
+  const $ = (s)=>document.querySelector(s);
+  const show = (el)=>el.classList.add('open');
+  const hide = (el)=>el.classList.remove('open');
+
+  const overlay = $('#overlay');
+  const premiumSidebar = $('#premiumSidebar');
+  const adminPanel = $('#adminPanel');
+
+  function openSidebar(sidebar){ overlay.classList.add('open'); show(sidebar); }
+  function closeAll(){ overlay.classList.remove('open'); hide(premiumSidebar); hide(adminPanel); document.querySelectorAll('.modal').forEach(m=>hide(m)); }
+
+  $('#premiumBtn').addEventListener('click',()=> openSidebar(premiumSidebar));
+  $('#adminBtn').addEventListener('click',()=> openSidebar(adminPanel));
+
+  document.querySelectorAll('.close').forEach(btn=> btn.addEventListener('click',()=>{ const id = btn.dataset.close; hide($('#'+id)); if(!adminPanel.classList.contains('open') && !premiumSidebar.classList.contains('open')) overlay.classList.remove('open');}));
+  document.querySelectorAll('[data-close-modal]').forEach(btn=> btn.addEventListener('click',()=>{ hide($('#'+btn.dataset.closeModal)); overlay.classList.remove('open');}));
+
+  overlay.addEventListener('click', closeAll);
+  window.addEventListener('keydown', e=>{ if(e.key==='Escape') closeAll(); });
+
+  $('#adminUserBtn').addEventListener('click',()=>{ hide(adminPanel); show($('#adminLogin')); overlay.classList.add('open'); });
+  $('#ownerUserBtn').addEventListener('click',()=>{ hide(adminPanel); show($('#ownerLogin')); overlay.classList.add('open'); });
+
+  $('#ownerSubmit').addEventListener('click',()=>{
+    const u = $('#ownerUser').value.trim();
+    const p = $('#ownerPass').value;
+    if(u==='Zamas' && p==='0228'){
+      hide($('#ownerLogin')); overlay.classList.remove('open');
+      $('#mainPanel').style.display='none';
+      $('#dashboard').style.display='block';
+      $('#viewsCount').textContent = String(views);
+      $('#clickCount').textContent = String(clicks);
+    } else alert('Credenciales incorrectas');
+  });
+
+  $('#backToMain').addEventListener('click',()=>{
+    $('#dashboard').style.display='none';
+    $('#mainPanel').style.display='block';
+  });
+
+  $('#getKeyBtn').addEventListener('click',()=>{
+    clicks++; localStorage.setItem('clicks', clicks);
+    $('#keyDisplay').textContent = Array.from({length:4},()=>Math.random().toString(36).substring(2,6).toUpperCase()).join('-');
+    $('#keyRow').style.display='flex';
+  });
+
+  $('#copyBtn').addEventListener('click',()=>{ window.location.href = 'https://www.roblox.com/share?code=1b6f711a1f21d7489ac6f5ed985a07b2&type=Server'; });
+})();
+</script>
+</body>
+</html>
